@@ -8,7 +8,7 @@ Docker-based self-hosted setup for [Plane](https://plane.so) project management 
 docker-compose up -d
 ```
 
-Wait ~30 seconds, then open: **http://localhost/**
+Wait ~30 seconds, then open: **http://localhost:8080/**
 
 ## Default Credentials
 
@@ -22,7 +22,8 @@ Wait ~30 seconds, then open: **http://localhost/**
 Edit `.env` to customize before first run:
 
 ```env
-PLANE_PORT=80
+# Web interface port (default 8080, change if needed)
+PLANE_PORT=8080
 
 # Admin credentials (used on first setup only)
 ADMIN_EMAIL=admin@plane.local
@@ -59,45 +60,48 @@ docker-compose up -d
 ## Architecture
 
 ```
-                    ┌─────────────────┐
-                    │   Browser :80   │
-                    └────────┬────────┘
-                             │
-                    ┌────────▼────────┐
-                    │  plane-proxy    │
-                    │  (nginx)        │
-                    └────────┬────────┘
-                             │
-           ┌─────────────────┼─────────────────┐
-           │                 │                 │
-   ┌───────▼───────┐ ┌───────▼───────┐ ┌───────▼───────┐
-   │  plane-web    │ │  plane-api    │ │   /api/       │
-   │  (Next.js)    │ │  (Django)     │ │   /auth/      │
-   │  :3000        │ │  :8000        │ │               │
-   └───────────────┘ └───────┬───────┘ └───────────────┘
-                             │
-        ┌────────────────────┼────────────────────┐
-        │                    │                    │
-┌───────▼───────┐    ┌───────▼───────┐    ┌───────▼───────┐
-│  plane-db     │    │  plane-redis  │    │  plane-minio  │
-│  (PostgreSQL) │    │  (Valkey)     │    │  (S3 Storage) │
-│  :5432        │    │  :6379        │    │  :9000        │
-└───────────────┘    └───────────────┘    └───────────────┘
+                      ┌─────────────────┐
+                      │  Browser :8080  │
+                      └────────┬────────┘
+                               │
+                      ┌────────▼────────┐
+                      │  plane-proxy    │
+                      │  (nginx)        │
+                      └────────┬────────┘
+                               │
+              ┌────────────────┼────────────────┐
+              │                │                │
+      ┌───────▼───────┐ ┌──────▼──────┐ ┌───────▼───────┐
+      │  plane-web    │ │  plane-api  │ │  plane-worker │
+      │  (Next.js)    │ │  (Django)   │ │  (Celery)     │
+      └───────────────┘ └──────┬──────┘ └───────────────┘
+                               │
+       ┌───────────┬───────────┼───────────┬───────────┐
+       │           │           │           │           │
+┌──────▼──────┐ ┌──▼───┐ ┌─────▼─────┐ ┌───▼───┐ ┌─────▼─────┐
+│  plane-db   │ │redis │ │ plane-mq  │ │ minio │ │  init     │
+│ (PostgreSQL)│ │      │ │ (RabbitMQ)│ │ (S3)  │ │ (setup)   │
+└─────────────┘ └──────┘ └───────────┘ └───────┘ └───────────┘
 ```
 
 ## Services
 
-| Service      | Port  | Description              |
-|--------------|-------|--------------------------|
-| plane-proxy  | 80    | Nginx reverse proxy      |
-| plane-web    | 3000* | Next.js frontend         |
-| plane-api    | 8000* | Django REST API          |
-| plane-db     | 5432  | PostgreSQL database      |
-| plane-redis  | 6379  | Valkey/Redis cache       |
-| plane-mq     | 5672  | RabbitMQ message queue   |
-| plane-minio  | 9000  | MinIO object storage     |
+| Service      | Port     | Description              |
+|--------------|----------|--------------------------|
+| plane-proxy  | 8080     | Nginx reverse proxy      |
+| plane-web    | internal | Next.js frontend         |
+| plane-api    | internal | Django REST API          |
+| plane-db     | dynamic  | PostgreSQL database      |
+| plane-redis  | dynamic  | Valkey/Redis cache       |
+| plane-mq     | dynamic  | RabbitMQ message queue   |
+| plane-minio  | dynamic  | MinIO object storage     |
 
-*Internal only - access via nginx proxy on port 80
+Internal services use dynamic ports to avoid conflicts.
+
+```bash
+# View assigned ports
+docker-compose ps
+```
 
 ## Files
 
@@ -142,7 +146,7 @@ docker-compose ps
 
 ### Check service health
 ```bash
-curl http://localhost/api/instances/
+curl http://localhost:8080/api/instances/
 ```
 
 ## System Requirements
@@ -150,7 +154,6 @@ curl http://localhost/api/instances/
 - Docker Desktop for Mac/Windows or Docker Engine for Linux
 - 4GB+ RAM (8GB recommended)
 - 10GB+ free disk space
-- Ports 80, 5432, 6379, 9000 available
 
 ## Updating
 
