@@ -8,7 +8,7 @@ Docker-based self-hosted setup for [Plane](https://plane.so) project management 
 docker-compose up -d
 ```
 
-Wait ~30 seconds, then open: **http://localhost:8080/**
+Wait ~30 seconds, then open: **http://localhost:33333/**
 
 ## Default Credentials
 
@@ -22,8 +22,8 @@ Wait ~30 seconds, then open: **http://localhost:8080/**
 Edit `.env` to customize before first run:
 
 ```env
-# Web interface port (default 8080, change if needed)
-PLANE_PORT=8080
+# Web interface port
+PLANE_PORT=33333
 
 # Admin credentials (used on first setup only)
 ADMIN_EMAIL=admin@plane.local
@@ -61,7 +61,7 @@ docker-compose up -d
 
 ```
                       ┌─────────────────┐
-                      │  Browser :8080  │
+                      │ Browser :33333  │
                       └────────┬────────┘
                                │
                       ┌────────▼────────┐
@@ -88,7 +88,7 @@ docker-compose up -d
 
 | Service      | Port     | Description              |
 |--------------|----------|--------------------------|
-| plane-proxy  | 8080     | Nginx reverse proxy      |
+| plane-proxy  | 33333    | Nginx reverse proxy      |
 | plane-web    | internal | Next.js frontend         |
 | plane-api    | internal | Django REST API          |
 | plane-db     | dynamic  | PostgreSQL database      |
@@ -146,7 +146,7 @@ docker-compose ps
 
 ### Check service health
 ```bash
-curl http://localhost:8080/api/instances/
+curl http://localhost:33333/api/instances/
 ```
 
 ## System Requirements
