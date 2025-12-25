@@ -4,11 +4,21 @@ Docker-based self-hosted setup for [Plane](https://plane.so) project management 
 
 ## Quick Start
 
+### Basic Setup
 ```bash
 docker-compose up -d
 ```
 
 Wait ~30 seconds, then open: **http://localhost:33333/**
+
+### Solo Developer Setup (Recommended)
+For desktop app development with optimized configuration:
+
+```bash
+./setup-solo-dev.sh
+```
+
+This sets up a complete solo-dev workspace with pre-configured states, labels, modules, and views. See [README-SOLO-DEV.md](README-SOLO-DEV.md) for details.
 
 ## Default Credentials
 
